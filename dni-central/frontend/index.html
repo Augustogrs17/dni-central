@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNI Central — Metalfrio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg0:#0d0d0d;--bg1:#141414;--bg2:#1a1a1a;--bg3:#1e1e1e;--bg4:#252525;
+  --border:#252525;--border2:#2e2e2e;
+  --text0:#e8e8e8;--text1:#aaaaaa;--text2:#666666;--text3:#3a3a3a;
+  --blue:#0098ff;--blue-dim:#0098ff14;--blue-border:#0098ff28;
+  --green:#00c37a;--green-dim:#00c37a12;--green-border:#00c37a28;
+  --red:#f47067;--red-dim:#f4706712;--red-border:#f4706728;
+  --amber:#e8b84b;--amber-dim:#e8b84b12;
+  --radius:4px;--radius-lg:6px;
+  --font:'Segoe UI',system-ui,sans-serif;
+  --mono:'Cascadia Code','Consolas',monospace;
+}
+html,body{height:100%;background:var(--bg1);color:var(--text0);
+  font-family:var(--font);font-size:13px;overflow:hidden;user-select:none;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+
+/* layout */
+.app{display:flex;flex-direction:column;height:100vh;}
+
+/* titlebar */
+.titlebar{
+  height:32px;background:var(--bg0);
+  display:flex;align-items:center;padding:0 16px;gap:10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  -webkit-app-region:drag;
+}
+.titlebar *{-webkit-app-region:no-drag;}
+.tb-logo{color:var(--blue);font-size:15px;font-weight:700;}
+.tb-name{font-size:12px;font-weight:500;color:#ccc;}
+.tb-sep{color:var(--text3);}
+.tb-meta{font-size:10px;color:var(--text3);}
+.tb-ver{margin-left:auto;font-size:10px;color:var(--text3);}
+
+/* sidebar */
+.layout{display:flex;flex:1;overflow:hidden;}
+.sidebar{
+  width:200px;background:#111;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.sb-section{padding:16px 12px 6px;font-size:9px;font-weight:700;
+  letter-spacing:1px;color:var(--text3);text-transform:uppercase;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:7px 14px;
+  font-size:12px;color:var(--text2);cursor:pointer;
+  border-left:2px solid transparent;transition:all .15s;
+}
+.nav-item:hover{color:var(--text1);background:#161616;}
+.nav-item.active{color:var(--text0);border-left-color:var(--blue);background:#161616;}
+.nav-item svg{opacity:.5;flex-shrink:0;}
+.nav-item.active svg{opacity:1;}
+.nav-badge{
+  margin-left:auto;font-size:9px;font-weight:600;
+  padding:2px 6px;border-radius:10px;
+  background:var(--bg4);color:var(--text2);
+}
+.nav-badge.blue{background:var(--blue-dim);color:var(--blue);}
+.sb-spacer{flex:1;}
+.sb-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.sb-footer-txt{font-size:9px;color:var(--text3);line-height:1.6;}
+
+/* main */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.page{display:none;flex-direction:column;flex:1;}
+.page.active{display:flex;}
+
+/* page header */
+.page-hdr{
+  padding:16px 24px;border-bottom:1px solid var(--border);
+  background:var(--bg2);display:flex;align-items:center;
+  gap:14px;flex-shrink:0;
+}
+.ph-icon{
+  width:32px;height:32px;border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ph-icon.blue{background:var(--blue-dim);border:1px solid var(--blue-border);}
+.ph-icon svg{color:var(--blue);}
+.ph-title{font-size:14px;font-weight:600;letter-spacing:-.2px;}
+.ph-sub{font-size:10px;color:var(--text2);margin-top:2px;}
+.ph-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* toolbar */
+.toolbar{
+  padding:10px 24px;border-bottom:1px solid var(--border);
+  background:var(--bg2);display:flex;align-items:center;gap:10px;
+  flex-shrink:0;
+}
+.path-display{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:6px 10px;
+  font-size:11px;font-family:var(--mono);color:var(--text1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.path-display.placeholder{color:var(--text3);}
+
+/* buttons */
+.btn{
+  display:flex;align-items:center;gap:6px;border-radius:var(--radius);
+  font-size:11px;font-weight:500;cursor:pointer;
+  transition:all .15s;white-space:nowrap;border:none;
+}
+.btn-primary{
+  background:var(--blue);color:#fff;
+  padding:7px 14px;font-size:12px;font-weight:600;
+}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-ghost{
+  background:transparent;color:var(--text2);
+  border:1px solid var(--border2);padding:6px 12px;
+}
+.btn-ghost:hover{background:var(--bg4);color:var(--text1);}
+.btn-icon{
+  width:28px;height:28px;background:var(--bg4);
+  border:1px solid var(--border2);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text2);cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.btn-icon:hover{background:var(--border2);color:var(--text1);}
+
+/* summary bar */
+.summary-bar{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  background:var(--bg3);flex-shrink:0;
+}
+.sum-card{
+  flex:1;padding:10px 20px;border-right:1px solid var(--border);
+}
+.sum-card:last-child{border-right:none;}
+.sum-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;
+  color:var(--text3);text-transform:uppercase;margin-bottom:4px;}
+.sum-val{font-size:20px;font-weight:700;letter-spacing:-1px;line-height:1;}
+.sum-val.blue{color:var(--blue);}
+.sum-val.green{color:var(--green);}
+.sum-val.amber{color:var(--amber);}
+.sum-val.red{color:var(--red);}
+.sum-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* table */
+.table-wrap{flex:1;overflow-y:auto;padding:0;}
+.table-empty{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;flex:1;gap:10px;color:var(--text3);
+  padding:60px 20px;
+}
+.table-empty svg{opacity:.3;}
+.table-empty-title{font-size:13px;color:var(--text2);}
+.table-empty-sub{font-size:11px;color:var(--text3);text-align:center;}
+
+table{width:100%;border-collapse:collapse;}
+thead th{
+  position:sticky;top:0;background:#111;
+  padding:8px 14px;font-size:10px;font-weight:600;
+  letter-spacing:.5px;color:var(--text3);text-align:left;
+  border-bottom:1px solid var(--border);text-transform:uppercase;
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid #1a1a1a;transition:background .1s;}
+tbody tr:hover{background:#1c1c1c;}
+tbody td{
+  padding:8px 14px;font-size:11px;color:var(--text1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;
+}
+td.dep{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:600;}
+td.assunto{color:var(--text0);max-width:320px;}
+td.status .badge{
+  display:inline-block;padding:2px 8px;border-radius:3px;
+  font-size:10px;font-weight:600;
+}
+.badge.preliminar{background:var(--blue-dim);color:var(--blue);}
+.badge.conceito{background:var(--amber-dim);color:var(--amber);}
+.badge.alpha{background:#a78bfa14;color:#a78bfa;}
+.badge.beta{background:#22d3ee14;color:#22d3ee;}
+.badge.outro{background:var(--bg4);color:var(--text2);}
+
+/* loading */
+.spinner{
+  width:16px;height:16px;border:2px solid var(--border2);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .7s linear infinite;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-lg);padding:11px 16px;
+  font-size:12px;color:var(--text1);max-width:320px;
+  transform:translateY(12px);opacity:0;
+  transition:all .22s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green-border);}
+.toast.err{border-color:var(--red-border);}
+.toast-title{font-weight:600;color:var(--text0);margin-bottom:2px;font-size:11px;}
+.toast-msg{font-size:10px;color:var(--text2);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <span class="tb-logo">❄</span>
+    <span class="tb-name">DNI Central</span>
+    <span class="tb-sep">·</span>
+    <span class="tb-meta">Metalfrio Solutions</span>
+    <span class="tb-ver" id="tb-ver">v0.1.0</span>
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-section">Módulos</div>
+
+      <div class="nav-item active" onclick="navTo('projetos')" id="nav-projetos">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Projetos
+        <span class="nav-badge blue" id="badge-projetos" style="display:none">0</span>
+      </div>
+
+      <div class="nav-item" onclick="navTo('itens-di')" id="nav-itens-di">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Itens DI
+        <span class="nav-badge" id="badge-di" style="display:none">0</span>
+      </div>
+
+      <div class="nav-item" onclick="navTo('ppap')" id="nav-ppap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        PPAP
+      </div>
+
+      <div class="nav-item" onclick="navTo('dashboard')" id="nav-dashboard">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Dashboard
+      </div>
+
+      <div class="sb-spacer"></div>
+      <div class="sb-footer">
+        <div class="sb-footer-txt" id="sb-footer-txt">Nenhuma pasta selecionada</div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- ══ PROJETOS ══════════════════════════════════════════════ -->
+      <div class="page active" id="page-projetos">
+        <div class="page-hdr">
+          <div class="ph-icon blue">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ph-title">Projetos</div>
+            <div class="ph-sub" id="proj-sub">Selecione a pasta de projetos para começar</div>
+          </div>
+          <div class="ph-right">
+            <div class="spinner" id="proj-spinner" style="display:none"></div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="path-display placeholder" id="path-display">Nenhuma pasta selecionada</div>
+          <div class="btn-icon" onclick="pickPasta()" title="Selecionar pasta">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <button class="btn btn-primary" id="btn-carregar" onclick="carregarProjetos()" disabled>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Carregar
+          </button>
+        </div>
+
+        <!-- Summary bar (oculto até ter dados) -->
+        <div class="summary-bar" id="summary-bar" style="display:none">
+          <div class="sum-card">
+            <div class="sum-lbl">Total</div>
+            <div class="sum-val blue" id="sum-total">0</div>
+            <div class="sum-sub">projetos ativos</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Preliminar</div>
+            <div class="sum-val green" id="sum-prel">0</div>
+            <div class="sum-sub">em andamento</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Conceito</div>
+            <div class="sum-val amber" id="sum-conc">0</div>
+            <div class="sum-sub">projetos</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Outros status</div>
+            <div class="sum-val" id="sum-outros" style="color:var(--text2)">0</div>
+            <div class="sum-sub">projetos</div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-wrap" id="table-wrap">
+          <div class="table-empty" id="table-empty">
+            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <div class="table-empty-title">Nenhum projeto carregado</div>
+            <div class="table-empty-sub">Selecione a pasta de projetos<br>e clique em Carregar</div>
+          </div>
+          <table id="proj-table" style="display:none">
+            <thead>
+              <tr>
+                <th style="width:90px">DEP</th>
+                <th>Assunto</th>
+                <th style="width:100px">Modelo</th>
+                <th style="width:120px">Líder</th>
+                <th style="width:110px">Fase</th>
+                <th style="width:100px">Status</th>
+              </tr>
+            </thead>
+            <tbody id="proj-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ ITENS DI (placeholder) ════════════════════════════════ -->
+      <div class="page" id="page-itens-di">
+        <div class="page-hdr">
+          <div class="ph-icon blue">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ph-title">Itens DI</div>
+            <div class="ph-sub">Extração de itens COMP / FABR / BENEF com SIT = DI</div>
+          </div>
+        </div>
+        <div class="table-empty" style="flex:1">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="table-empty-title">Módulo em desenvolvimento</div>
+          <div class="table-empty-sub">Disponível na próxima versão</div>
+        </div>
+      </div>
+
+      <!-- ══ PPAP (placeholder) ════════════════════════════════════ -->
+      <div class="page" id="page-ppap">
+        <div class="page-hdr">
+          <div class="ph-icon blue">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ph-title">PPAP</div>
+            <div class="ph-sub">Cruzamento de itens DI com registros do Monday</div>
+          </div>
+        </div>
+        <div class="table-empty" style="flex:1">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="table-empty-title">Módulo em desenvolvimento</div>
+          <div class="table-empty-sub">Disponível na próxima versão</div>
+        </div>
+      </div>
+
+      <!-- ══ DASHBOARD (placeholder) ══════════════════════════════ -->
+      <div class="page" id="page-dashboard">
+        <div class="page-hdr">
+          <div class="ph-icon blue">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ph-title">Dashboard</div>
+            <div class="ph-sub">Visão consolidada dos indicadores DNI</div>
+          </div>
+        </div>
+        <div class="table-empty" style="flex:1">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="table-empty-title">Módulo em desenvolvimento</div>
+          <div class="table-empty-sub">Disponível na próxima versão</div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-msg" id="toast-msg"></div>
+</div>
+
+<script>
+// ── Estado ────────────────────────────────────────────────────────────
+const S = {
+  pasta: '',
+  projetos: [],
+};
+
+// ── Init ──────────────────────────────────────────────────────────────
+window.addEventListener('pywebviewready', async () => {
+  const ver = await py('get_version');
+  if (ver) el('tb-ver').textContent = ver;
+
+  const cfg = await py('carregar_config');
+  if (cfg && cfg.pasta_projetos) {
+    S.pasta = cfg.pasta_projetos;
+    el('path-display').textContent = cfg.pasta_projetos;
+    el('path-display').classList.remove('placeholder');
+    el('btn-carregar').disabled = false;
+    el('sb-footer-txt').textContent = cfg.pasta_projetos.split('\\').pop()
+      || cfg.pasta_projetos;
+  }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────
+const el  = id => document.getElementById(id);
+const py  = (fn, ...args) => window.pywebview.api[fn](...args);
+
+function toast(title, msg, type = 'ok') {
+  const t = el('toast');
+  el('toast-title').textContent = title;
+  el('toast-msg').textContent   = msg || '';
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+
+// ── Navegação ─────────────────────────────────────────────────────────
+function navTo(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el('nav-' + page).classList.add('active');
+  el('page-' + page).classList.add('active');
+}
+
+// ── Seleção de pasta ──────────────────────────────────────────────────
+async function pickPasta() {
+  const path = await py('pick_folder');
+  if (!path) return;
+  S.pasta = path;
+  el('path-display').textContent = path;
+  el('path-display').classList.remove('placeholder');
+  el('btn-carregar').disabled = false;
+  el('sb-footer-txt').textContent = path.split('\\').pop() || path;
+  await py('salvar_config', { pasta_projetos: path });
+}
+
+// ── Carregar projetos ─────────────────────────────────────────────────
+async function carregarProjetos() {
+  if (!S.pasta) return;
+
+  el('btn-carregar').disabled = true;
+  el('proj-spinner').style.display = 'block';
+  el('proj-sub').textContent = 'Lendo arquivos...';
+  el('proj-table').style.display = 'none';
+  el('table-empty').style.display = 'none';
+  el('summary-bar').style.display = 'none';
+
+  try {
+    const res = await py('listar_projetos', S.pasta);
+
+    if (!res.ok) {
+      toast('Erro ao carregar', res.erro || 'Verifique a pasta', 'err');
+      el('table-empty').style.display = 'flex';
+      return;
+    }
+
+    S.projetos = res.projetos || [];
+    renderTabela(S.projetos);
+
+  } catch (e) {
+    toast('Erro', String(e), 'err');
+    el('table-empty').style.display = 'flex';
+  } finally {
+    el('btn-carregar').disabled = false;
+    el('proj-spinner').style.display = 'none';
+  }
+}
+
+// ── Renderizar tabela ─────────────────────────────────────────────────
+function renderTabela(projetos) {
+  const tbody = el('proj-tbody');
+  tbody.innerHTML = '';
+
+  if (!projetos.length) {
+    el('table-empty').style.display = 'flex';
+    el('proj-sub').textContent = 'Nenhum projeto ativo encontrado';
+    return;
+  }
+
+  // Summary
+  const total  = projetos.length;
+  const prel   = projetos.filter(p => norm(p.status) === 'PRELIMINAR').length;
+  const conc   = projetos.filter(p => norm(p.status).includes('CONCEITO')).length;
+  const outros = total - prel - conc;
+
+  el('sum-total').textContent  = total;
+  el('sum-prel').textContent   = prel;
+  el('sum-conc').textContent   = conc;
+  el('sum-outros').textContent = outros;
+  el('summary-bar').style.display = 'flex';
+
+  // Badge sidebar
+  el('badge-projetos').textContent    = total;
+  el('badge-projetos').style.display = 'inline';
+
+  // Rows
+  projetos.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="dep">${esc(p.dep || '—')}</td>
+      <td class="assunto" title="${esc(p.assunto || '')}">${esc(p.assunto || '—')}</td>
+      <td>${esc(p.modelo || '—')}</td>
+      <td>${esc(p.lider || '—')}</td>
+      <td>${esc(p.fase || '—')}</td>
+      <td class="status">${badgeStatus(p.status)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  el('proj-table').style.display = 'table';
+  el('table-empty').style.display = 'none';
+  el('proj-sub').textContent =
+    `${total} projeto(s) ativo(s) · ${prel} preliminar(es)`;
+
+  toast('Projetos carregados', `${total} projetos encontrados`);
+}
+
+function badgeStatus(status) {
+  const s = norm(status || '');
+  if (s === 'PRELIMINAR')              return '<span class="badge preliminar">Preliminar</span>';
+  if (s.includes('CONCEITO/PRE'))      return '<span class="badge conceito">Conc./Pré Alpha</span>';
+  if (s.includes('CONCEITO'))          return '<span class="badge conceito">Conceito</span>';
+  if (s.includes('ALPHA'))             return '<span class="badge alpha">Alpha</span>';
+  if (s.includes('BETA'))              return '<span class="badge beta">Beta</span>';
+  if (s === 'STAND BY')                return '<span class="badge outro">Stand By</span>';
+  return `<span class="badge outro">${esc(status || '—')}</span>`;
+}
+
+function norm(s) {
+  return String(s || '').trim().toUpperCase();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
