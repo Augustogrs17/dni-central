@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyo
+dist/
+build/
+*.spec.bak
+.eggs/
+*.egg-info/
+dni_central_config.json
+dni_uso.log
+*.log
+.venv/
+venv/
+.idea/
+.vscode/
