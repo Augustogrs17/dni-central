@@ -1,3 +1,0 @@
-pywebview==5.3.2
-openpyxl==3.1.5
-pyinstaller==6.11.1
